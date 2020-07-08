@@ -88,7 +88,7 @@ app.debug = True
 def hello():
     return "Hello World!"
 
-@app.route("/jsonResrNew")
+@app.route("/executeReelCinema")
 def helloNew():
     ReelResult()
     
