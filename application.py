@@ -6,6 +6,13 @@ from flask import Flask, jsonify
 #import spacy
 from flask import request
 
+# importing libraries
+from bs4 import BeautifulSoup
+#import urllib.request
+#import re
+import requests
+from datetime import date
+
 server = 'mafvdata.database.windows.net'
 database = 'mafvaa_in'
 username = 'aateam'
@@ -17,11 +24,57 @@ cnxn = pyodbc.connect('DRIVER='+driver+';PORT=1433;SERVER='+server+';PORT=1443;D
 cursor = cnxn.cursor()
 
 
-cursor.execute("Select * from [VOX].[DimItem_V]")
-row = cursor.fetchone()
-while row:
-    print (str(row[0]) + " " + str(row[1]))
-    row = cursor.fetchone()
+
+#Reel cinema
+
+def ReelResult():
+#    server = 'mafvdata.database.windows.net'
+#    database = 'mafvaa_in'
+#    username = 'aateam'
+#    password = 'uKPdyRRNEK7qQ9xS'
+    #driver= '{ODBC Driver 17 for SQL Server}'
+ #   drivers = [item for item in pyodbc.drivers()]
+#    driver = drivers[-1]
+#    cnxn = pyodbc.connect('DRIVER='+driver+';PORT=1433;SERVER='+server+';PORT=1443;DATABASE='+database+';UID='+username+';PWD='+ password)
+ #   cursor = cnxn.cursor()
+
+
+    URL = "https://www.reelcinemas.ae/en/showtime";
+    #print(URL)
+
+    page = requests.get(URL)
+    soup = BeautifulSoup(page.content, 'html.parser')
+    r=soup.find('div',{'class':'js-loadCinamaListing showtime-blk'})
+
+    cinemaList=[]
+    for iterm in r.findAll('div',{'class':'tileview-movies-list'}):
+
+        mallName=(iterm.find('div',{'class':'movielocation'})).find('span').text
+        movieName=(iterm.find('div',{'class':'moviename'})).find('span').text
+        locationmobile=(iterm.find('div',{'class':'locationmobile'})).text
+        logoimg=(iterm.find('div',{'class':'logoimg'})).text
+        #logoimg=(iterm.find('div',{'class':'logoimg'})).find('span').text
+        showtimewrap=(iterm.find('div',{'class':'showtimewrap'}))
+        sub_items = showtimewrap.findAll('li')
+        for sub_item in sub_items:
+            TIME=(sub_item.find('div',{'class':'showtime'})).text
+            #print(TIME)
+            nList=[]
+
+
+            today = date.today()  
+            nList=({'mallName':mallName,'movieName':movieName,'location':locationmobile,'logoimg':logoimg,'Showtime':TIME,'Date':today})
+            cinemaList.append(nList)
+    data=pd.DataFrame(cinemaList)
+
+    cols = ",".join([str(i) for i in data.columns.tolist()])
+    # Insert DataFrame recrds one by one.
+    for i,row in data.iterrows():
+        sql = "INSERT INTO Cinema_Reel (" +cols + ") VALUES (" + "%s,"*(len(row)-1) + "%s)"
+        cursor.execute(sql, tuple(row))
+
+        # the connection is not autocommitted by default, so we must commit to save our changes
+        connection.commit()
 
 app = Flask(__name__)
 
@@ -35,5 +88,6 @@ def hello():
 
 @app.route("/jsonResrNew")
 def helloNew():
+    ReelResult()
     
     return (("succesfully inserted")) 
