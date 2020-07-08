@@ -69,12 +69,14 @@ def ReelResult():
 
     cols = ",".join([str(i) for i in data.columns.tolist()])
     # Insert DataFrame recrds one by one.
+    cols = ",".join([str(i) for i in data.columns.tolist()])
     for i,row in data.iterrows():
-        sql = "INSERT INTO Cinema_Reel (" +cols + ") VALUES (" + "%s,"*(len(row)-1) + "%s)"
-        cursor.execute(sql, tuple(row))
-
+        SQLCommand = "INSERT INTO Cinema_Reel (" +cols + ") VALUES (?,?,?,?,?,?)"
+        Values = row.tolist()  
+        #Processing Query    
+        cursor.execute(SQLCommand,Values)  
         # the connection is not autocommitted by default, so we must commit to save our changes
-        connection.commit()
+        cnxn.commit()  
 
 app = Flask(__name__)
 
