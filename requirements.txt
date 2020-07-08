@@ -1,5 +1,5 @@
-requests=2.24.0
-beautifulsoup4=4.9.1
+requests==2.24.0
+beautifulsoup4==4.9.1
 pyodbc==4.0.30
 pandas==0.24.2
 spacy
