@@ -77,6 +77,69 @@ def ReelResult():
         cursor.execute(SQLCommand,Values)  
         # the connection is not autocommitted by default, so we must commit to save our changes
         cnxn.commit()  
+        
+        
+def NovoResult():
+    server = 'mafvdata.database.windows.net'
+    database = 'mafvaa_in'
+    username = 'aateam'
+    password = 'uKPdyRRNEK7qQ9xS'
+    #driver= '{ODBC Driver 17 for SQL Server}'
+    drivers = [item for item in pyodbc.drivers()]
+    driver = drivers[-1]
+    cnxn = pyodbc.connect('DRIVER='+driver+';PORT=1433;SERVER='+server+';PORT=1443;DATABASE='+database+';UID='+username+';PWD='+ password)
+    cursor = cnxn.cursor()
+    #Nova film
+    cinemaList=[]
+    URL = "https://uae.novocinemas.com/";
+    #print(URL)
+
+    page = requests.get(URL)
+    soup = BeautifulSoup(page.content, 'html.parser')
+
+    price=soup.find("select",{"id":"drpMovie"})
+    options = price.find_all("option")
+    options1=[y.text for y in options]
+    values = [o.get("value") for o in options]
+    for x in range(1,len(values)):
+        #print (options1[x], values[x])
+        name=options1[x].replace(" ", "-")
+        #print(name)
+       # options1[x]
+        URLN = "https://uae.novocinemas.com/movie/details/"+values[x]+"/"+name;
+        #print(URLN)
+
+        pageN = requests.get(URLN)
+        soupN = BeautifulSoup(pageN.content, 'html.parser')
+
+        #cinemaList=[]
+        for iterm in soupN.findAll('div',{'class':'n-cinema-desc'}):
+
+            location=(iterm.find('a',{'class':'n-cinema'})).text
+            mallLocation=" ".join(location.split())
+            #print(mallLocation)
+            showtimewrap=(iterm.find('div',{'class':'collapse n-movie-timings'}))
+            sub_items = showtimewrap.findAll('li')
+            for sub_item in sub_items:
+                TIME=(sub_item.find('a',{'class':'n-time'})).text
+                Experience=(sub_item.find('span',{'class':'n-info-experience'})).text
+                #print(Experience)
+                nList=[]
+                today = date.today()
+                nList=({'mallName':mallLocation,'movieName':name,'location':mallLocation,'Showtime':TIME,'Experience':Experience,'Date':today})
+                #print(nList)
+                cinemaList.append(nList)
+    NovoData=pd.DataFrame(cinemaList)
+    cols = ",".join([str(i) for i in NovoData.columns.tolist()])
+    # Insert DataFrame recrds one by one.
+    for i,row in NovoData.iterrows():
+
+        SQLCommand = "INSERT INTO Cinema_Nova (" +cols + ") VALUES (?,?,?,?,?,?)"
+        Values = row.tolist()  
+        #Processing Query    
+        cursor.execute(SQLCommand,Values)  
+        # the connection is not autocommitted by default, so we must commit to save our changes
+        cnxn.commit()  
 
 app = Flask(__name__)
 
@@ -88,8 +151,14 @@ app.debug = True
 def hello():
     return "Hello World!"
 
-@app.route("/executeReelCinema")
+@app.route("/ReelCinema")
 def helloNew():
     ReelResult()
     
-    return (("succesfully inserted")) 
+    return (("succesfully Reel data inserted")) 
+
+@app.route("/NovoCinema")
+def helloNew():
+    NovoResult()
+    
+    return (("succesfully Novo data inserted")) 
