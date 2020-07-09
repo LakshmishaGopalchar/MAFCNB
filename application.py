@@ -152,13 +152,13 @@ def hello():
     return "Hello World!"
 
 @app.route("/ReelCinema")
-def helloNew():
+def cinemaReel():
     ReelResult()
     
     return (("succesfully Reel data inserted")) 
 
 @app.route("/NovoCinema")
-def helloNew():
+def cinemaNovo():
     NovoResult()
     
     return (("succesfully Novo data inserted")) 
