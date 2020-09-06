@@ -22,6 +22,7 @@ drivers = [item for item in pyodbc.drivers()]
 driver = drivers[-1]
 cnxn = pyodbc.connect('DRIVER='+driver+';PORT=1433;SERVER='+server+';PORT=1443;DATABASE='+database+';UID='+username+';PWD='+ password)
 cursor = cnxn.cursor()
+print(driver)
 
 
 
