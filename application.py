@@ -17,7 +17,6 @@ server = 'mafvdata.database.windows.net'
 database = 'mafvaa_in'
 username = 'aateam'
 password = 'uKPdyRRNEK7qQ9xS'
-#driver= '{ODBC Driver 17 for SQL Server}'
 drivers = [item for item in pyodbc.drivers()]
 driver = drivers[-1]
 cnxn = pyodbc.connect('DRIVER='+driver+';PORT=1433;SERVER='+server+';PORT=1443;DATABASE='+database+';UID='+username+';PWD='+ password)
